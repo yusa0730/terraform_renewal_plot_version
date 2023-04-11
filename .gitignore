@@ -1,3 +1,4 @@
-environments/dev/.terraform.lock.hcl
-environments/dev/.terraform/
-
+environments/dev/ap-northeast-1/.terraform.lock.hcl
+environments/dev/ap-northeast-1/.terraform/
+environments/dev/ap-northeast-3/.terraform.lock.hcl
+environments/dev/ap-northeast-3/.terraform/
