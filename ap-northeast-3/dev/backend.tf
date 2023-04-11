@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "ap-northeast-1"
+  region = "ap-northeast-3"
 }
 
 terraform {
@@ -13,6 +13,6 @@ terraform {
   backend "s3" {
     bucket = "infrastructure-renewal-lesson-bucket"
     key    = "dev/terraform.tfstate"
-    region = "ap-northeast-1"
+    region = "ap-northeast-3"
   }
 }
