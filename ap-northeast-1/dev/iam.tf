@@ -29,7 +29,10 @@ resource "aws_iam_role_policy" "lambda_role_policy" {
       {
         Effect = "Allow"
         Action = [
-          "dynamodb:GetItem"
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem"
         ]
         Resource = [
           "${aws_dynamodb_table.main.arn}"
