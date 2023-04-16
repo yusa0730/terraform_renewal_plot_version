@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const dynamoDB = new AWS.DynamoDB.DocumentClient();;
+const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event, context) => {
   let response = {};
@@ -10,7 +10,10 @@ exports.handler = async (event, context) => {
     const params = {
       TableName: 'dev-example-table',
     };
-    if (httpMethod === 'GET') {
+    if (httpMethod === 'GET' && !event.id) {
+      const result = await dynamoDB.scan(params).promise();
+      response = result;
+    } else if (httpMethod === 'GET') {
       const id = event.id;
       params.Key = {
         'id': id
@@ -30,8 +33,18 @@ exports.handler = async (event, context) => {
       };
       params.ConditionExpression ='attribute_not_exists(id)';
       console.log(params);
+
       await dynamoDB.put(params).promise();
       statusCode = 201;
+      response = params;
+    } else if (httpMethod == 'DELETE') {
+      const id = event.id;
+      params.Key = {
+        'id': id
+      }
+
+      await dynamoDB.delete(params).promise();
+      statusCode = 204;
       response = params;
     } else {
       statusCode = 400;
