@@ -64,14 +64,14 @@ resource "aws_eip" "nat_1c" {
 }
 
 # NAT
-resource "aws_nat_gateway" "nat_1c" {
-  subnet_id     = aws_subnet.nat_public_c.id
-  allocation_id = aws_eip.nat_1c.id
+# resource "aws_nat_gateway" "nat_1c" {
+#   subnet_id     = aws_subnet.nat_public_c.id
+#   allocation_id = aws_eip.nat_1c.id
 
-  tags = {
-    Name = "${local.project_name}-${local.env}-nat-1c"
-  }
-}
+#   tags = {
+#     Name = "${local.project_name}-${local.env}-nat-1c"
+#   }
+# }
 
 # route_table
 resource "aws_route_table" "public" {
