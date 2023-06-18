@@ -15,23 +15,23 @@ resource "aws_vpc" "main" {
 }
 
 # Subnet
-resource "aws_subnet" "lambda_public_a" {
+resource "aws_subnet" "lambda_private_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.10.0/24"
   availability_zone = "${local.region}a"
 
   tags = {
-    Name = "${local.project_name}-${local.env}-lambda-subnet-public-a"
+    Name = "${local.project_name}-${local.env}-lambda-subnet-private-a"
   }
 }
 
-resource "aws_subnet" "nat_public_c" {
+resource "aws_subnet" "nat_public_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.20.0/24"
-  availability_zone = "${local.region}c"
+  availability_zone = "${local.region}a"
 
   tags = {
-    Name = "${local.project_name}-${local.env}-nat-subnet-public-c"
+    Name = "${local.project_name}-${local.env}-nat-subnet-public-a"
   }
 }
 
@@ -55,7 +55,7 @@ resource "aws_internet_gateway" "main" {
 }
 
 # EIP
-resource "aws_eip" "nat_1c" {
+resource "aws_eip" "nat_1a" {
   vpc = true
 
   tags = {
@@ -64,12 +64,12 @@ resource "aws_eip" "nat_1c" {
 }
 
 # NAT
-resource "aws_nat_gateway" "nat_1c" {
-  subnet_id     = aws_subnet.nat_public_c.id
-  allocation_id = aws_eip.nat_1c.id
+resource "aws_nat_gateway" "nat_1a" {
+  subnet_id     = aws_subnet.nat_public_a.id
+  allocation_id = aws_eip.nat_1a.id
 
   tags = {
-    Name = "${local.project_name}-${local.env}-nat-1c"
+    Name = "${local.project_name}-${local.env}-nat-1a"
   }
 }
 
@@ -77,18 +77,55 @@ resource "aws_nat_gateway" "nat_1c" {
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
   tags = {
     Name = "${local.project_name}-${local.env}-public"
   }
 }
 
-resource "aws_route" "public" {
-  destination_cidr_block = "0.0.0.0/0"
-  route_table_id         = aws_route_table.public.id
-  gateway_id             = aws_internet_gateway.main.id
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_1a.id
+  }
 }
 
-resource "aws_route_table_association" "public_1c" {
-  subnet_id      = aws_subnet.nat_public_c.id
+resource "aws_route_table_association" "public_1a" {
+  subnet_id      = aws_subnet.nat_public_a.id
   route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "private_1a" {
+  subnet_id      = aws_subnet.lambda_private_a.id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_security_group" "from_api_gateway_to_lambda" {
+  vpc_id = aws_vpc.main.id
+}
+
+resource "aws_vpc_endpoint" "from_api_gateway_to_lambda" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.ap-northeast-1.lambda"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = [aws_subnet.lambda_private_a.id]
+  security_group_ids  = [aws_security_group.from_api_gateway_to_lambda.id]
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "from_lambda_to_dynamodb" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.ap-northeast-1.dynamodb"
+  vpc_endpoint_type = "Gateway"
+}
+
+resource "aws_route" "route_to_dynamodb" {
+  route_table_id             = aws_route_table.private.id
+  destination_prefix_list_id = aws_vpc_endpoint.from_lambda_to_dynamodb.prefix_list_id
+  vpc_endpoint_id            = aws_vpc_endpoint.from_lambda_to_dynamodb.id
 }
