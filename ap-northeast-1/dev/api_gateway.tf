@@ -1,138 +1,223 @@
-# resource "aws_api_gateway_rest_api" "main" {
-#   name = "test_lambda_api"
-# }
+data "aws_caller_identity" "current" {}
 
-# resource "aws_api_gateway_resource" "main" {
-#   rest_api_id = aws_api_gateway_rest_api.main.id
-#   parent_id   = aws_api_gateway_rest_api.main.root_resource_id
-#   path_part   = ""
-# }
+resource "aws_api_gateway_rest_api" "main" {
+  api_key_source               = "HEADER"
+  binary_media_types           = []
+  description                  = var.rest_api_description
+  disable_execute_api_endpoint = false
+  name                         = var.rest_api_name
+  put_rest_api_mode            = "overwrite"
+  tags                         = {}
+  tags_all                     = {}
 
-# resource "aws_api_gateway_resource" "users" {
-#   rest_api_id = aws_api_gateway_rest_api.main.id
-#   parent_id   = aws_api_gateway_rest_api.main.root_resource_id
-#   path_part   = "users"
-# }
+  endpoint_configuration {
+    types = [
+      "REGIONAL",
+    ]
+  }
+}
 
-# resource "aws_api_gateway_method" "get_users" {
-#   rest_api_id          = aws_api_gateway_rest_api.main.id
-#   resource_id          = aws_api_gateway_resource.users.id
-#   api_key_required     = false
-#   authorization        = "NONE"
-#   authorization_scopes = []
-#   http_method          = "GET"
-#   request_models       = {}
-#   request_parameters   = {}
-# }
+resource "aws_api_gateway_resource" "items" {
+  parent_id   = aws_api_gateway_rest_api.main.root_resource_id
+  path_part   = var.rest_api_gateway_resource_path_part
+  rest_api_id = aws_api_gateway_rest_api.main.id
+}
 
-# resource "aws_api_gateway_integration" "get_users" {
-#   cache_key_parameters    = []
-#   cache_namespace         = aws_api_gateway_resource.users.id
-#   content_handling        = "CONVERT_TO_TEXT"
-#   http_method             = aws_api_gateway_method.get_users.http_method
-#   integration_http_method = "POST"
-#   passthrough_behavior    = "WHEN_NO_MATCH"
-#   request_parameters      = {}
-#   request_templates = {
-#     "application/json" = ""
-#   }
-#   resource_id          = aws_api_gateway_resource.users.id
-#   rest_api_id          = aws_api_gateway_rest_api.main.id
-#   timeout_milliseconds = 29000
-#   type                 = "AWS"
-#   uri                  = "arn:aws:apigateway:${local.region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${local.region}:218317313594:function:index2-users-function/invocations"
-# }
+resource "aws_api_gateway_resource" "items_id" {
+  parent_id   = aws_api_gateway_resource.items.id
+  path_part   = "{id}"
+  rest_api_id = aws_api_gateway_rest_api.main.id
+}
 
-# resource "aws_api_gateway_method" "create_users" {
-#   rest_api_id          = aws_api_gateway_rest_api.main.id
-#   resource_id          = aws_api_gateway_resource.users.id
-#   api_key_required     = false
-#   authorization        = "NONE"
-#   authorization_scopes = []
-#   http_method          = "POST"
-#   request_models       = {}
-#   request_parameters   = {}
-# }
+resource "aws_api_gateway_method" "get" {
+  api_key_required     = false
+  authorization        = "NONE"
+  authorization_scopes = []
+  http_method          = "GET"
+  request_models       = {}
+  request_parameters   = {}
+  resource_id          = aws_api_gateway_resource.items.id
+  rest_api_id          = aws_api_gateway_rest_api.main.id
+}
 
-# resource "aws_api_gateway_integration" "create_users" {
-#   cache_key_parameters    = []
-#   cache_namespace         = aws_api_gateway_resource.users.id
-#   content_handling        = "CONVERT_TO_TEXT"
-#   http_method             = aws_api_gateway_method.create_users.http_method
-#   integration_http_method = "POST"
-#   passthrough_behavior    = "WHEN_NO_TEMPLATES"
-#   request_parameters      = {}
-#   request_templates = {
-#     "application/json" = <<-EOT
-#             {
-#               "id": $input.json('$.id'),
-#               "FirstName": $input.json('$.FirstName'),
-#               "LastName": $input.json('$.LastName')
-#             }
-#         EOT
-#   }
-#   resource_id          = aws_api_gateway_resource.users.id
-#   rest_api_id          = aws_api_gateway_rest_api.main.id
-#   timeout_milliseconds = 29000
-#   type                 = "AWS"
-#   uri                  = aws_lambda_function.create.invoke_arn
-# }
+resource "aws_api_gateway_method" "put" {
+  api_key_required     = false
+  authorization        = "NONE"
+  authorization_scopes = []
+  http_method          = "PUT"
+  request_models       = {}
+  request_parameters   = {}
+  resource_id          = aws_api_gateway_resource.items.id
+  rest_api_id          = aws_api_gateway_rest_api.main.id
+}
 
-# resource "aws_api_gateway_method" "option_users" {
-#   rest_api_id          = aws_api_gateway_rest_api.main.id
-#   resource_id          = aws_api_gateway_resource.users.id
-#   api_key_required     = false
-#   authorization        = "NONE"
-#   authorization_scopes = []
-#   http_method          = "OPTIONS"
-#   request_models       = {}
-#   request_parameters   = {}
-# }
+resource "aws_api_gateway_method" "options" {
+  api_key_required     = false
+  authorization        = "NONE"
+  authorization_scopes = []
+  http_method          = "OPTIONS"
+  request_models       = {}
+  request_parameters   = {}
+  resource_id          = aws_api_gateway_resource.items.id
+  rest_api_id          = aws_api_gateway_rest_api.main.id
+}
 
-# resource "aws_api_gateway_integration" "option_users" {
-#   cache_key_parameters = []
-#   cache_namespace      = aws_api_gateway_resource.users.id
-#   http_method          = "OPTIONS"
-#   passthrough_behavior = "WHEN_NO_MATCH"
-#   request_parameters   = {}
-#   request_templates = {
-#     "application/json" = jsonencode(
-#       {
-#         statusCode = 200
-#       }
-#     )
-#   }
-#   resource_id          = aws_api_gateway_resource.users.id
-#   rest_api_id          = aws_api_gateway_rest_api.main.id
-#   timeout_milliseconds = 29000
-#   type                 = "MOCK"
-# }
+resource "aws_api_gateway_method" "get_id" {
+  api_key_required     = false
+  authorization        = "NONE"
+  authorization_scopes = []
+  http_method          = "GET"
+  request_models       = {}
+  request_parameters = {
+    "method.request.path.id" = true
+  }
+  resource_id = aws_api_gateway_resource.items_id.id
+  rest_api_id = aws_api_gateway_rest_api.main.id
+}
 
+resource "aws_api_gateway_method" "delete_id" {
+  api_key_required     = false
+  authorization        = "NONE"
+  authorization_scopes = []
+  http_method          = "DELETE"
+  request_models       = {}
+  request_parameters = {
+    "method.request.path.id" = true
+  }
+  resource_id = aws_api_gateway_resource.items_id.id
+  rest_api_id = aws_api_gateway_rest_api.main.id
+}
 
-# resource "aws_api_gateway_method_response" "option_users" {
-#   http_method = "OPTIONS"
-#   resource_id = aws_api_gateway_resource.users.id
-#   response_models = {
-#     "application/json" = "Empty"
-#   }
-#   response_parameters = {
-#     "method.response.header.Access-Control-Allow-Headers" = false
-#     "method.response.header.Access-Control-Allow-Methods" = false
-#     "method.response.header.Access-Control-Allow-Origin"  = false
-#   }
-#   rest_api_id = aws_api_gateway_rest_api.main.id
-#   status_code = "200"
-# }
+resource "aws_lambda_permission" "get" {
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.main.arn
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${var.region}:${data.aws_caller_identity.current.account_id}:${aws_api_gateway_rest_api.main.id}/*/${aws_api_gateway_method.get.http_method}/${var.rest_api_gateway_resource_path_part}"
+}
 
-# resource "aws_api_gateway_integration_response" "option_users" {
-#   http_method = "OPTIONS"
-#   resource_id = aws_api_gateway_resource.users.id
-#   response_parameters = {
-#     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-#     "method.response.header.Access-Control-Allow-Methods" = "'OPTIONS,POST'"
-#     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-#   }
-#   response_templates = {}
-#   rest_api_id        = aws_api_gateway_rest_api.main.id
-#   status_code        = "200"
-# }
+resource "aws_lambda_permission" "put" {
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.main.arn
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${var.region}:${data.aws_caller_identity.current.account_id}:${aws_api_gateway_rest_api.main.id}/*/${aws_api_gateway_method.put.http_method}/${var.rest_api_gateway_resource_path_part}"
+}
+
+resource "aws_lambda_permission" "get_id" {
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.main.arn
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${var.region}:${data.aws_caller_identity.current.account_id}:${aws_api_gateway_rest_api.main.id}/*/${aws_api_gateway_method.get_id.http_method}/${var.rest_api_gateway_resource_path_part}/*"
+}
+
+resource "aws_lambda_permission" "delete_id" {
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.main.arn
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${var.region}:${data.aws_caller_identity.current.account_id}:${aws_api_gateway_rest_api.main.id}/*/${aws_api_gateway_method.delete_id.http_method}/${var.rest_api_gateway_resource_path_part}/*"
+}
+
+resource "aws_api_gateway_integration" "get" {
+  cache_key_parameters    = []
+  cache_namespace         = aws_api_gateway_resource.items.id
+  connection_type         = "INTERNET"
+  content_handling        = "CONVERT_TO_TEXT"
+  http_method             = "GET"
+  integration_http_method = "POST"
+  passthrough_behavior    = "WHEN_NO_MATCH"
+  request_parameters      = {}
+  request_templates       = {}
+  resource_id             = aws_api_gateway_resource.items.id
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  timeout_milliseconds    = 29000
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.main.invoke_arn
+}
+
+resource "aws_api_gateway_integration" "put" {
+  cache_key_parameters    = []
+  cache_namespace         = aws_api_gateway_resource.items.id
+  connection_type         = "INTERNET"
+  content_handling        = "CONVERT_TO_TEXT"
+  http_method             = "PUT"
+  integration_http_method = "POST"
+  passthrough_behavior    = "WHEN_NO_MATCH"
+  request_parameters      = {}
+  request_templates       = {}
+  resource_id             = aws_api_gateway_resource.items.id
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  timeout_milliseconds    = 29000
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.main.invoke_arn
+}
+
+resource "aws_api_gateway_integration" "get_id" {
+  cache_key_parameters    = []
+  cache_namespace         = aws_api_gateway_resource.items_id.id
+  connection_type         = "INTERNET"
+  content_handling        = "CONVERT_TO_TEXT"
+  http_method             = "GET"
+  integration_http_method = "POST"
+  passthrough_behavior    = "WHEN_NO_MATCH"
+  request_parameters      = {}
+  request_templates       = {}
+  resource_id             = aws_api_gateway_resource.items_id.id
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  timeout_milliseconds    = 29000
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.main.invoke_arn
+}
+
+resource "aws_api_gateway_integration" "delete_id" {
+  cache_key_parameters    = []
+  cache_namespace         = aws_api_gateway_resource.items_id.id
+  connection_type         = "INTERNET"
+  content_handling        = "CONVERT_TO_TEXT"
+  http_method             = "DELETE"
+  integration_http_method = "POST"
+  passthrough_behavior    = "WHEN_NO_MATCH"
+  request_parameters      = {}
+  request_templates       = {}
+  resource_id             = aws_api_gateway_resource.items_id.id
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  timeout_milliseconds    = 29000
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.main.invoke_arn
+}
+
+resource "aws_api_gateway_integration" "options" {
+  cache_key_parameters = []
+  cache_namespace      = aws_api_gateway_resource.items.id
+  connection_type      = "INTERNET"
+  http_method          = "OPTIONS"
+  passthrough_behavior = "WHEN_NO_MATCH"
+  request_parameters   = {}
+  request_templates = {
+    "application/json" = jsonencode(
+      {
+        statusCode = 200
+      }
+    )
+  }
+  resource_id          = aws_api_gateway_resource.items.id
+  rest_api_id          = aws_api_gateway_rest_api.main.id
+  timeout_milliseconds = 29000
+  type                 = "MOCK"
+
+  depends_on = [
+    aws_api_gateway_resource.items,
+    aws_api_gateway_method.options
+  ]
+}
+
+resource "aws_api_gateway_deployment" "dev" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  stage_name  = var.env
+
+  depends_on = [
+    aws_api_gateway_integration.get,
+    aws_api_gateway_integration.put,
+    aws_api_gateway_integration.get_id,
+    aws_api_gateway_integration.delete_id,
+    aws_api_gateway_integration.options,
+  ]
+}
