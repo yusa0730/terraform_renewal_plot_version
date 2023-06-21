@@ -33,3 +33,9 @@ variable "rest_api_gateway_resource_path_part" {
   type        = string
   default     = "items"
 }
+
+variable "lambda_function_name" {
+  description = "aws_lambda_functionのfunction_nameの値です"
+  type        = string
+  default     = "example_lambda"
+}
