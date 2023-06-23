@@ -164,10 +164,9 @@ resource "aws_route_table_association" "private_1a" {
 #   route_table_id = aws_route_table.private_c.id
 # }
 
-# security_group
-resource "aws_security_group" "from_api_gateway_to_lambda_sg" {
-  name        = "${var.env}-internal-lambda-sg"
-  description = "${var.env}-internal-lambda-sg"
+resource "aws_security_group" "vpc_endpoint_of_interface_lambda" {
+  name        = "${var.env}-vpce-interface-lambda-sg"
+  description = "${var.env}-vpce-interface-lambda-sg"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -176,6 +175,29 @@ resource "aws_security_group" "from_api_gateway_to_lambda_sg" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# security_group
+resource "aws_security_group" "from_api_gateway_to_lambda_sg" {
+  name        = "${var.env}-internal-lambda-sg"
+  description = "${var.env}-internal-lambda-sg"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description     = "HTTPS"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = ["${aws_security_group.vpc_endpoint_of_interface_lambda.id}"]
   }
 
   egress {
@@ -193,7 +215,7 @@ resource "aws_vpc_endpoint" "from_api_gateway_to_lambda" {
   vpc_endpoint_type = "Interface"
   subnet_ids        = [aws_subnet.lambda_private_a.id]
   # subnet_ids          = [aws_subnet.lambda_private_a.id, aws_subnet.lambda_private_c.id]
-  security_group_ids  = [aws_security_group.from_api_gateway_to_lambda_sg.id]
+  security_group_ids  = [aws_security_group.vpc_endpoint_of_interface_lambda.id]
   private_dns_enabled = true
   tags = {
     Name = "${var.env}-endpoint-lambda"
