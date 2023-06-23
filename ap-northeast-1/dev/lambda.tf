@@ -8,4 +8,13 @@ resource "aws_lambda_function" "main" {
   runtime       = "python3.10"
   role          = aws_iam_role.lambda_role.arn
   filename      = "./lambda_function_payload.zip"
+
+  vpc_config {
+    security_group_ids = [
+      aws_security_group.from_api_gateway_to_lambda_sg.id
+    ]
+    subnet_ids = [
+      aws_subnet.lambda_private_a.id
+    ]
+  }
 }

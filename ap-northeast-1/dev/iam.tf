@@ -20,6 +20,11 @@ resource "aws_iam_role_policy_attachment" "lambda_role_policy_attach" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+resource "aws_iam_role_policy_attachment" "lambda_role_policy_attach_VPCAccessExecutionRole" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
+
 resource "aws_iam_role_policy" "lambda_role_policy" {
   name = "${var.env}_lambda_policy"
   role = aws_iam_role.lambda_role.id

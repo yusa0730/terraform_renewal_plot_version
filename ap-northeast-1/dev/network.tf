@@ -169,6 +169,22 @@ resource "aws_security_group" "from_api_gateway_to_lambda_sg" {
   name        = "${var.env}-internal-lambda-sg"
   description = "${var.env}-internal-lambda-sg"
   vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = ""
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 resource "aws_vpc_endpoint" "from_api_gateway_to_lambda" {
