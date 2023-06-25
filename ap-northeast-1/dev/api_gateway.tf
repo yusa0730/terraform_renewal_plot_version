@@ -29,9 +29,21 @@ resource "aws_api_gateway_resource" "items_id" {
   rest_api_id = aws_api_gateway_rest_api.main.id
 }
 
+resource "aws_api_gateway_authorizer" "cognito" {
+  authorizer_result_ttl_in_seconds = 300
+  identity_source                  = "method.request.header.Authorization"
+  name                             = var.api_gateway_authorizer_name
+  provider_arns = [
+    aws_cognito_user_pool.main.arn,
+  ]
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  type        = "COGNITO_USER_POOLS"
+}
+
 resource "aws_api_gateway_method" "get" {
   api_key_required     = false
-  authorization        = "NONE"
+  authorization        = "COGNITO_USER_POOLS"
+  authorizer_id        = aws_api_gateway_authorizer.cognito.id
   authorization_scopes = []
   http_method          = "GET"
   request_models       = {}
@@ -42,7 +54,8 @@ resource "aws_api_gateway_method" "get" {
 
 resource "aws_api_gateway_method" "put" {
   api_key_required     = false
-  authorization        = "NONE"
+  authorization        = "COGNITO_USER_POOLS"
+  authorizer_id        = aws_api_gateway_authorizer.cognito.id
   authorization_scopes = []
   http_method          = "PUT"
   request_models       = {}
@@ -64,7 +77,8 @@ resource "aws_api_gateway_method" "options" {
 
 resource "aws_api_gateway_method" "get_id" {
   api_key_required     = false
-  authorization        = "NONE"
+  authorization        = "COGNITO_USER_POOLS"
+  authorizer_id        = aws_api_gateway_authorizer.cognito.id
   authorization_scopes = []
   http_method          = "GET"
   request_models       = {}
@@ -77,7 +91,8 @@ resource "aws_api_gateway_method" "get_id" {
 
 resource "aws_api_gateway_method" "delete_id" {
   api_key_required     = false
-  authorization        = "NONE"
+  authorization        = "COGNITO_USER_POOLS"
+  authorizer_id        = aws_api_gateway_authorizer.cognito.id
   authorization_scopes = []
   http_method          = "DELETE"
   request_models       = {}
