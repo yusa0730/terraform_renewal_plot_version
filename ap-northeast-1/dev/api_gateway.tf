@@ -32,7 +32,7 @@ resource "aws_api_gateway_resource" "items_id" {
 resource "aws_api_gateway_authorizer" "cognito" {
   authorizer_result_ttl_in_seconds = 300
   identity_source                  = "method.request.header.Authorization"
-  name                             = "test_cognito_20230623"
+  name                             = var.api_gateway_authorizer_name
   provider_arns = [
     aws_cognito_user_pool.main.arn,
   ]

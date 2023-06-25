@@ -71,26 +71,22 @@ resource "aws_cognito_user_pool" "main" {
 }
 
 resource "aws_cognito_user_pool_client" "public_client" {
-  access_token_validity = 60
-  allowed_oauth_flows = [
-    "code",
-  ]
-  allowed_oauth_flows_user_pool_client = true
-  allowed_oauth_scopes = [
-    "openid",
-  ]
-  auth_session_validity = 3
-  callback_urls = [
-    "https://localhost/",
-  ]
+  access_token_validity                         = 60
+  allowed_oauth_flows                           = []
+  allowed_oauth_flows_user_pool_client          = false
+  allowed_oauth_scopes                          = []
+  auth_session_validity                         = 3
+  callback_urls                                 = []
   enable_propagate_additional_user_context_data = false
   enable_token_revocation                       = true
   explicit_auth_flows = [
     "ALLOW_REFRESH_TOKEN_AUTH",
+    "ALLOW_USER_PASSWORD_AUTH",
+    "ALLOW_USER_SRP_AUTH",
   ]
   id_token_validity             = 60
   logout_urls                   = []
-  name                          = "ConfidentialClient"
+  name                          = "publicClient"
   prevent_user_existence_errors = "ENABLED"
   read_attributes = [
     "address",
@@ -113,11 +109,9 @@ resource "aws_cognito_user_pool_client" "public_client" {
     "website",
     "zoneinfo",
   ]
-  refresh_token_validity = 30
-  supported_identity_providers = [
-    "COGNITO",
-  ]
-  user_pool_id = aws_cognito_user_pool.main.id
+  refresh_token_validity       = 30
+  supported_identity_providers = []
+  user_pool_id                 = aws_cognito_user_pool.main.id
   write_attributes = [
     "address",
     "birthdate",
@@ -147,22 +141,26 @@ resource "aws_cognito_user_pool_client" "public_client" {
 
 ## Auth API の Authorization Code Grant フローでの呼び出しを行う場合はこちらを利用する
 # resource "aws_cognito_user_pool_client" "confidencial_client" {
-#   access_token_validity                         = 60
-#   allowed_oauth_flows                           = []
-#   allowed_oauth_flows_user_pool_client          = false
-#   allowed_oauth_scopes                          = []
-#   auth_session_validity                         = 3
-#   callback_urls                                 = []
+#   access_token_validity = 60
+#   allowed_oauth_flows = [
+#     "code",
+#   ]
+#   allowed_oauth_flows_user_pool_client = true
+#   allowed_oauth_scopes = [
+#     "openid",
+#   ]
+#   auth_session_validity = 3
+#   callback_urls = [
+#     "https://localhost/",
+#   ]
 #   enable_propagate_additional_user_context_data = false
 #   enable_token_revocation                       = true
 #   explicit_auth_flows = [
 #     "ALLOW_REFRESH_TOKEN_AUTH",
-#     "ALLOW_USER_PASSWORD_AUTH",
-#     "ALLOW_USER_SRP_AUTH",
 #   ]
 #   id_token_validity             = 60
 #   logout_urls                   = []
-#   name                          = "publicClient"
+#   name                          = "ConfidentialClient"
 #   prevent_user_existence_errors = "ENABLED"
 #   read_attributes = [
 #     "address",
@@ -185,9 +183,11 @@ resource "aws_cognito_user_pool_client" "public_client" {
 #     "website",
 #     "zoneinfo",
 #   ]
-#   refresh_token_validity       = 30
-#   supported_identity_providers = []
-#   user_pool_id                 = aws_cognito_user_pool.main.id
+#   refresh_token_validity = 30
+#   supported_identity_providers = [
+#     "COGNITO",
+#   ]
+#   user_pool_id = aws_cognito_user_pool.main.id
 #   write_attributes = [
 #     "address",
 #     "birthdate",

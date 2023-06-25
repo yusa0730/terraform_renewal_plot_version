@@ -29,9 +29,15 @@ variable "rest_api_description" {
 }
 
 variable "rest_api_gateway_resource_path_part" {
-  description = "rest_api_gateway_resourceのpath_partの値"
+  description = "aws_rest_api_gateway_resourceのpath_partの値"
   type        = string
   default     = "items"
+}
+
+variable "api_gateway_authorizer_name" {
+  description = "aws_api_gateway_authorizerのnameの値"
+  type        = string
+  default     = "cognito"
 }
 
 variable "lambda_function_name" {
