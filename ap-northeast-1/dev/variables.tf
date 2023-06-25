@@ -17,25 +17,31 @@ variable "region" {
 }
 
 variable "rest_api_name" {
-  description = "aws_api_gateway_rest_apiのnameの値です"
+  description = "aws_api_gateway_rest_apiのnameの値"
   type        = string
   default     = "test_api"
 }
 
 variable "rest_api_description" {
-  description = "aws_api_gateway_rest_apiのdescriptionの値です"
+  description = "aws_api_gateway_rest_apiのdescriptionの値"
   type        = string
   default     = ""
 }
 
 variable "rest_api_gateway_resource_path_part" {
-  description = "rest_api_gateway_resourceのpath_partの値です"
+  description = "rest_api_gateway_resourceのpath_partの値"
   type        = string
   default     = "items"
 }
 
 variable "lambda_function_name" {
-  description = "aws_lambda_functionのfunction_nameの値です"
+  description = "aws_lambda_functionのfunction_nameの値"
   type        = string
   default     = "example_lambda"
+}
+
+variable "cognito_user_pool_name" {
+  description = "cognitoのuser_pool用のname値"
+  type        = string
+  default     = "user_pool_of_tcdx"
 }
