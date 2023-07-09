@@ -63,7 +63,7 @@ resource "aws_cloudfront_distribution" "main" {
     connection_timeout  = 10
     domain_name         = "${aws_api_gateway_rest_api.main.id}.execute-api.${var.region}.amazonaws.com"
     origin_id           = "${aws_api_gateway_rest_api.main.id}.execute-api.${var.region}.amazonaws.com"
-    origin_path         = "/${aws_api_gateway_deployment.dev.stage_name}"
+    origin_path         = "/${aws_api_gateway_stage.main.stage_name}"
 
     custom_origin_config {
       http_port                = 80
