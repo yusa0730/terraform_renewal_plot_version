@@ -224,9 +224,8 @@ resource "aws_api_gateway_integration" "options" {
   ]
 }
 
-resource "aws_api_gateway_deployment" "dev" {
+resource "aws_api_gateway_deployment" "main" {
   rest_api_id = aws_api_gateway_rest_api.main.id
-  stage_name  = var.env
 
   depends_on = [
     aws_api_gateway_integration.get,
@@ -235,4 +234,15 @@ resource "aws_api_gateway_deployment" "dev" {
     aws_api_gateway_integration.delete_id,
     aws_api_gateway_integration.options,
   ]
+}
+
+resource "aws_api_gateway_stage" "main" {
+  cache_cluster_enabled = false
+  deployment_id         = aws_api_gateway_deployment.main.id
+  rest_api_id           = aws_api_gateway_rest_api.main.id
+  stage_name            = var.env
+  tags                  = {}
+  tags_all              = {}
+  variables             = {}
+  xray_tracing_enabled  = false
 }

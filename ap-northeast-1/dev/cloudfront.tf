@@ -9,6 +9,7 @@ resource "aws_cloudfront_distribution" "main" {
   tags                = {}
   tags_all            = {}
   wait_for_deployment = true
+  web_acl_id          = aws_wafv2_web_acl.cloudfront.arn
 
   default_cache_behavior {
     allowed_methods = [
@@ -62,7 +63,7 @@ resource "aws_cloudfront_distribution" "main" {
     connection_timeout  = 10
     domain_name         = "${aws_api_gateway_rest_api.main.id}.execute-api.${var.region}.amazonaws.com"
     origin_id           = "${aws_api_gateway_rest_api.main.id}.execute-api.${var.region}.amazonaws.com"
-    origin_path         = "/${aws_api_gateway_deployment.dev.stage_name}"
+    origin_path         = "/${aws_api_gateway_stage.main.stage_name}"
 
     custom_origin_config {
       http_port                = 80
@@ -100,6 +101,7 @@ resource "aws_cloudfront_distribution" "main" {
     aws_s3_bucket.cloudfront_logs,
     aws_s3_bucket_public_access_block.cloudfront_access_block,
     aws_s3_bucket_acl.cloudfront_acl,
-    aws_s3_bucket_ownership_controls.main
+    aws_s3_bucket_ownership_controls.main,
+    aws_wafv2_web_acl.cloudfront
   ]
 }
