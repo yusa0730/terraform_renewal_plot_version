@@ -7,6 +7,11 @@ provider "aws" {
   alias  = "virginia"
 }
 
+provider "aws" {
+  region = "ap-northeast-3"
+  alias  = "osaka"
+}
+
 terraform {
   required_version = ">= 0.15"
   required_providers {
