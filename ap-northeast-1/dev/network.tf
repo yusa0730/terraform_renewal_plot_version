@@ -49,6 +49,26 @@ resource "aws_subnet" "nat_public_a" {
 #   }
 # }
 
+resource "aws_subnet" "aws_batch_public_a" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.2.10.0/24"
+  availability_zone = "${var.region}a"
+
+  tags = {
+    Name = "${var.env}-batch-public-a-sbn"
+  }
+}
+
+resource "aws_subnet" "aws_batch_private_a" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.2.20.0/24"
+  availability_zone = "${var.region}a"
+
+  tags = {
+    Name = "${var.env}-batch-private-a-sbn"
+  }
+}
+
 
 # Internet Gateway
 resource "aws_internet_gateway" "main" {
@@ -164,6 +184,7 @@ resource "aws_route_table_association" "private_1a" {
 #   route_table_id = aws_route_table.private_c.id
 # }
 
+# security_group
 resource "aws_security_group" "vpc_endpoint_of_interface_lambda" {
   name        = "${var.env}-vpce-interface-lambda-sg"
   description = "${var.env}-vpce-interface-lambda-sg"
@@ -186,7 +207,6 @@ resource "aws_security_group" "vpc_endpoint_of_interface_lambda" {
   }
 }
 
-# security_group
 resource "aws_security_group" "from_api_gateway_to_lambda_sg" {
   name        = "${var.env}-internal-lambda-sg"
   description = "${var.env}-internal-lambda-sg"
@@ -205,6 +225,19 @@ resource "aws_security_group" "from_api_gateway_to_lambda_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "aws_batch" {
+  name        = "${var.env}-aws-batch-sg"
+  description = "${var.env}-aws-batch-sg"
+  vpc_id      = aws_vpc.main.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
