@@ -60,29 +60,6 @@ resource "aws_iam_role_policy" "lambda_role_policy" {
   policy = data.aws_iam_policy_document.lambda_role_policy.json
 }
 
-# resource "aws_iam_role_policy" "lambda_role_policy" {
-#   name = "${var.env}-lambda-policy"
-#   role = aws_iam_role.lambda_role.id
-#   policy = jsonencode({
-#     Version = "2012-10-17"
-#     Statement = [
-#       {
-#         Effect = "Allow"
-#         Action = [
-#           "dynamodb:Scan",
-#           "dynamodb:GetItem",
-#           "dynamodb:PutItem",
-#           "dynamodb:UpdateItem",
-#           "dynamodb:DeleteItem"
-#         ]
-#         Resource = [
-#           "${aws_dynamodb_table.main.arn}"
-#         ]
-#       }
-#     ]
-#   })
-# }
-
 ## AWS Backup
 resource "aws_iam_role" "aws_backup_role" {
   name = "AWSBackupDefaultServiceRole"
@@ -121,7 +98,7 @@ resource "aws_iam_role_policy_attachment" "aws_restore" {
 
 ## AWS Batch
 resource "aws_iam_role" "batch_service_role" {
-  name = "${var.env}-push-notification-batch-service-role"
+  name = "${var.env}-batch-service-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -324,4 +301,46 @@ data "aws_iam_policy_document" "public_batch_job_custom" {
       aws_dynamodb_table.main.arn
     ]
   }
+}
+
+# IAM Role that EventBridge assumes
+resource "aws_iam_role" "event_role" {
+  name = "${var.env}-event-bridge-batch-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "events.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# Add the permissions necessary for the EventBridge role
+resource "aws_iam_role_policy_attachment" "event_role_permissions" {
+  role       = aws_iam_role.event_role.name
+  policy_arn = aws_iam_policy.event_policy.arn
+}
+
+resource "aws_iam_policy" "event_policy" {
+  name        = "event-bridge-batch-policy"
+  description = "Policy to allow EventBridge to start AWS Batch Jobs"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = [
+          "batch:SubmitJob"
+        ],
+        Effect   = "Allow",
+        Resource = "*"
+      }
+    ]
+  })
 }
