@@ -49,6 +49,46 @@ resource "aws_subnet" "nat_public_a" {
 #   }
 # }
 
+resource "aws_subnet" "aws_batch_public_a" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.2.10.0/24"
+  availability_zone = "${var.region}a"
+
+  tags = {
+    Name = "${var.env}-batch-public-a-sbn"
+  }
+}
+
+# resource "aws_subnet" "aws_batch_public_c" {
+#   vpc_id            = aws_vpc.main.id
+#   cidr_block        = "10.2.11.0/24"
+#   availability_zone = "${var.region}c"
+
+#   tags = {
+#     Name = "${var.env}-batch-public-c-sbn"
+#   }
+# }
+
+resource "aws_subnet" "aws_batch_private_a" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.2.20.0/24"
+  availability_zone = "${var.region}a"
+
+  tags = {
+    Name = "${var.env}-batch-private-a-sbn"
+  }
+}
+
+# resource "aws_subnet" "aws_batch_private_c" {
+#   vpc_id            = aws_vpc.main.id
+#   cidr_block        = "10.2.21.0/24"
+#   availability_zone = "${var.region}c"
+
+#   tags = {
+#     Name = "${var.env}-batch-private-c-sbn"
+#   }
+# }
+
 
 # Internet Gateway
 resource "aws_internet_gateway" "main" {
@@ -104,7 +144,7 @@ resource "aws_route_table" "public_a" {
     gateway_id = aws_internet_gateway.main.id
   }
   tags = {
-    Name = "${var.env}-nat-public-a-route-table"
+    Name = "${var.env}-public-a-route-table"
   }
 }
 
@@ -116,7 +156,7 @@ resource "aws_route_table" "public_a" {
 #     gateway_id = aws_internet_gateway.main.id
 #   }
 #   tags = {
-#     Name = "${var.env}-nat-public-c-route-table"
+#     Name = "${var.env}-public-c-route-table"
 #   }
 # }
 
@@ -128,7 +168,7 @@ resource "aws_route_table" "private_a" {
     nat_gateway_id = aws_nat_gateway.nat_1a.id
   }
   tags = {
-    Name = "${var.env}-lambda-private-a-route-table"
+    Name = "${var.env}-private-a-route-table"
   }
 }
 
@@ -140,31 +180,52 @@ resource "aws_route_table" "private_a" {
 #     nat_gateway_id = aws_nat_gateway.nat_1c.id
 #   }
 #   tags = {
-#     Name = "${var.env}-lambda-private-c-route-table"
+#     Name = "${var.env}-private-c-route-table"
 #   }
 # }
 
-resource "aws_route_table_association" "public_1a" {
+resource "aws_route_table_association" "nat_public_1a" {
   subnet_id      = aws_subnet.nat_public_a.id
   route_table_id = aws_route_table.public_a.id
 }
 
-# resource "aws_route_table_association" "public_1c" {
+# resource "aws_route_table_association" "nat_public_1c" {
 #   subnet_id      = aws_subnet.nat_public_c.id
 #   route_table_id = aws_route_table.public_c.id
 # }
 
-resource "aws_route_table_association" "private_1a" {
+resource "aws_route_table_association" "aws_batch_public_a" {
+  subnet_id      = aws_subnet.aws_batch_public_a.id
+  route_table_id = aws_route_table.public_a.id
+}
+
+# resource "aws_route_table_association" "aws_batch_public_c" {
+#   subnet_id      = aws_subnet.aws_batch_public_c.id
+#   route_table_id = aws_route_table.public_c.id
+# }
+
+resource "aws_route_table_association" "lambda_private_1a" {
   subnet_id      = aws_subnet.lambda_private_a.id
   route_table_id = aws_route_table.private_a.id
 }
 
-# resource "aws_route_table_association" "private_1c" {
+# resource "aws_route_table_association" "lambda_private_1c" {
 #   subnet_id      = aws_subnet.lambda_private_c.id
 #   route_table_id = aws_route_table.private_c.id
 # }
 
-resource "aws_security_group" "vpc_endpoint_of_interface_lambda" {
+resource "aws_route_table_association" "aws_batch_private_a" {
+  subnet_id      = aws_subnet.aws_batch_private_a.id
+  route_table_id = aws_route_table.private_a.id
+}
+
+# resource "aws_route_table_association" "aws_batch_private_c" {
+#   subnet_id      = aws_subnet.aws_batch_private_c.id
+#   route_table_id = aws_route_table.private_c.id
+# }
+
+# security_group
+resource "aws_security_group" "vpc_endpoint_of_interface_lambda_sg" {
   name        = "${var.env}-vpce-interface-lambda-sg"
   description = "${var.env}-vpce-interface-lambda-sg"
   vpc_id      = aws_vpc.main.id
@@ -186,7 +247,6 @@ resource "aws_security_group" "vpc_endpoint_of_interface_lambda" {
   }
 }
 
-# security_group
 resource "aws_security_group" "from_api_gateway_to_lambda_sg" {
   name        = "${var.env}-internal-lambda-sg"
   description = "${var.env}-internal-lambda-sg"
@@ -197,7 +257,7 @@ resource "aws_security_group" "from_api_gateway_to_lambda_sg" {
     from_port       = 443
     to_port         = 443
     protocol        = "tcp"
-    security_groups = ["${aws_security_group.vpc_endpoint_of_interface_lambda.id}"]
+    security_groups = ["${aws_security_group.vpc_endpoint_of_interface_lambda_sg.id}"]
   }
 
   egress {
@@ -209,13 +269,89 @@ resource "aws_security_group" "from_api_gateway_to_lambda_sg" {
   }
 }
 
+resource "aws_security_group" "push_notification_aws_batch_sg" {
+  name        = "${var.env}-push-notification-aws-batch-sg"
+  description = "${var.env}-push-notification-aws-batch-sg"
+  vpc_id      = aws_vpc.main.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "public_aws_batch_sg" {
+  name        = "${var.env}-public-aws-batch-sg"
+  description = "${var.env}-public-aws-batch-sg"
+  vpc_id      = aws_vpc.main.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "vpc_endpoint_ecr_sg" {
+  name        = "${var.env}-vpc-endpoint-ecr-sg"
+  description = "${var.env}-vpc-endpoint-ecr-sg"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description     = "from AWS Batch"
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    security_groups = ["${aws_security_group.push_notification_aws_batch_sg.id}"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "vpc_endpoint_cloudwatch_logs_sg" {
+  name        = "${var.env}-vpc-endpoint-cloudwatch-logs-sg"
+  description = "${var.env}-vpc-endpoint-cloudwatch-logs-sg"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description     = "from push notification AWS Batch"
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    security_groups = ["${aws_security_group.push_notification_aws_batch_sg.id}"]
+  }
+
+  ingress {
+    description     = "from public AWS Batch"
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    security_groups = ["${aws_security_group.public_aws_batch_sg.id}"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_vpc_endpoint" "from_api_gateway_to_lambda" {
   vpc_id            = aws_vpc.main.id
-  service_name      = "com.amazonaws.ap-northeast-1.lambda"
+  service_name      = "com.amazonaws.${var.region}.lambda"
   vpc_endpoint_type = "Interface"
   subnet_ids        = [aws_subnet.lambda_private_a.id]
   # subnet_ids          = [aws_subnet.lambda_private_a.id, aws_subnet.lambda_private_c.id]
-  security_group_ids  = [aws_security_group.vpc_endpoint_of_interface_lambda.id]
+  security_group_ids  = [aws_security_group.vpc_endpoint_of_interface_lambda_sg.id]
   private_dns_enabled = true
   tags = {
     Name = "${var.env}-endpoint-lambda"
@@ -224,7 +360,7 @@ resource "aws_vpc_endpoint" "from_api_gateway_to_lambda" {
 
 resource "aws_vpc_endpoint" "from_lambda_to_dynamodb" {
   vpc_id            = aws_vpc.main.id
-  service_name      = "com.amazonaws.ap-northeast-1.dynamodb"
+  service_name      = "com.amazonaws.${var.region}.dynamodb"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = [aws_route_table.private_a.id]
   # route_table_ids   = [aws_route_table.private_a.id, aws_route_table.private_c.id]
@@ -242,4 +378,70 @@ resource "aws_vpc_endpoint_route_table_association" "from_lambda_a_to_dynamodb" 
 # resource "aws_vpc_endpoint_route_table_association" "from_lambda_c_to_dynamodb" {
 #   route_table_id  = aws_route_table.private_c.id
 #   vpc_endpoint_id = aws_vpc_endpoint.from_lambda_to_dynamodb.id
+# }
+
+
+### ECRのVPC Endpoint
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${var.region}.ecr.dkr"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = [aws_subnet.aws_batch_private_a.id]
+  # subnet_ids = [aws_subnet.aws_batch_private_a.id, aws_subnet.aws_batch_private_c.id]
+  security_group_ids  = [aws_security_group.vpc_endpoint_ecr_sg.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.env}-endpoint-ecr-dkr"
+  }
+}
+
+resource "aws_vpc_endpoint" "ecr_api" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${var.region}.ecr.api"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = [aws_subnet.aws_batch_private_a.id]
+  # subnet_ids = [aws_subnet.aws_batch_private_a.id, aws_subnet.aws_batch_private_c.id]
+  security_group_ids  = [aws_security_group.vpc_endpoint_ecr_sg.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.env}-endpoint-ecr-api"
+  }
+}
+
+resource "aws_vpc_endpoint" "cloudwatch_logs" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${var.region}.logs"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = [aws_subnet.aws_batch_private_a.id]
+  # subnet_ids = [aws_subnet.aws_batch_private_a.id, aws_subnet.aws_batch_private_c.id]
+  security_group_ids  = [aws_security_group.vpc_endpoint_cloudwatch_logs_sg.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.env}-endpoint-cloudwatch-logs"
+  }
+}
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${var.region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private_a.id]
+  # route_table_ids   = [aws_route_table.private_a.id, aws_route_table.private_c.id]
+
+  tags = {
+    Name = "${var.env}-endpoint-s3"
+  }
+}
+
+resource "aws_vpc_endpoint_route_table_association" "private_a_s3" {
+  route_table_id  = aws_route_table.private_a.id
+  vpc_endpoint_id = aws_vpc_endpoint.s3.id
+}
+
+# resource "aws_vpc_endpoint_route_table_association" "private_c_s3" {
+#   route_table_id  = aws_route_table.private_c.id
+#   vpc_endpoint_id = aws_vpc_endpoint.s3.id
 # }
