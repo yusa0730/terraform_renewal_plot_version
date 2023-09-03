@@ -9,13 +9,23 @@ resource "aws_vpc" "main" {
 }
 
 # Subnet
-resource "aws_subnet" "lambda_private_a" {
+# resource "aws_subnet" "lambda_private_a" {
+#   vpc_id            = aws_vpc.main.id
+#   cidr_block        = "10.2.0.0/24"
+#   availability_zone = "${var.region}a"
+
+#   tags = {
+#     Name = "${var.env}-lambda-private-a-sbn"
+#   }
+# }
+
+resource "aws_subnet" "lambda_public_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.2.0.0/24"
   availability_zone = "${var.region}a"
 
   tags = {
-    Name = "${var.env}-lambda-private-a-sbn"
+    Name = "${var.env}-lambda-public-a-sbn"
   }
 }
 
@@ -26,6 +36,16 @@ resource "aws_subnet" "lambda_private_a" {
 
 #   tags = {
 #     Name = "${var.env}-lambda-private-c-sbn"
+#   }
+# }
+
+# resource "aws_subnet" "lambda_public_c" {
+#   vpc_id            = aws_vpc.main.id
+#   cidr_block        = "10.2.1.0/24"
+#   availability_zone = "${var.region}c"
+
+#   tags = {
+#     Name = "${var.env}-lambda-public-c-sbn"
 #   }
 # }
 
@@ -204,14 +224,23 @@ resource "aws_route_table_association" "aws_batch_public_a" {
 #   route_table_id = aws_route_table.public_c.id
 # }
 
-resource "aws_route_table_association" "lambda_private_1a" {
-  subnet_id      = aws_subnet.lambda_private_a.id
-  route_table_id = aws_route_table.private_a.id
+# resource "aws_route_table_association" "lambda_private_1a" {
+#   subnet_id      = aws_subnet.lambda_private_a.id
+#   route_table_id = aws_route_table.private_a.id
+# }
+resource "aws_route_table_association" "lambda_public_1a" {
+  subnet_id      = aws_subnet.lambda_public_a.id
+  route_table_id = aws_route_table.public_a.id
 }
 
 # resource "aws_route_table_association" "lambda_private_1c" {
 #   subnet_id      = aws_subnet.lambda_private_c.id
 #   route_table_id = aws_route_table.private_c.id
+# }
+
+# resource "aws_route_table_association" "lambda_public_1c" {
+#   subnet_id      = aws_subnet.lambda_public_c.id
+#   route_table_id = aws_route_table.public_c.id
 # }
 
 resource "aws_route_table_association" "aws_batch_private_a" {
@@ -225,40 +254,56 @@ resource "aws_route_table_association" "aws_batch_private_a" {
 # }
 
 # security_group
-resource "aws_security_group" "vpc_endpoint_of_interface_lambda_sg" {
-  name        = "${var.env}-vpce-interface-lambda-sg"
-  description = "${var.env}-vpce-interface-lambda-sg"
-  vpc_id      = aws_vpc.main.id
+#=======privateサブネットにLambdaを設定する際に必要なSecurity Group=========
+# resource "aws_security_group" "vpc_endpoint_of_interface_lambda_sg" {
+#   name        = "${var.env}-vpce-interface-lambda-sg"
+#   description = "${var.env}-vpce-interface-lambda-sg"
+#   vpc_id      = aws_vpc.main.id
 
-  ingress {
-    description = "HTTPS"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#   ingress {
+#     description = "HTTPS"
+#     from_port   = 443
+#     to_port     = 443
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
 
-  egress {
-    description = "HTTPS"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
+#   egress {
+#     description = "HTTPS"
+#     from_port   = 443
+#     to_port     = 443
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+# }
+
+# resource "aws_security_group" "from_api_gateway_to_lambda_sg" {
+#   name        = "${var.env}-internal-private-lambda-sg"
+#   description = "${var.env}-internal-private-lambda-sg"
+#   vpc_id      = aws_vpc.main.id
+
+#   ingress {
+#     description     = "HTTPS"
+#     from_port       = 443
+#     to_port         = 443
+#     protocol        = "tcp"
+#     security_groups = ["${aws_security_group.vpc_endpoint_of_interface_lambda_sg.id}"]
+#   }
+
+#   egress {
+#     description = ""
+#     from_port   = 0
+#     to_port     = 0
+#     protocol    = -1
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+# }
+#=======privateサブネットにLambdaを設定する際に必要なSecurity Group=========
 
 resource "aws_security_group" "from_api_gateway_to_lambda_sg" {
-  name        = "${var.env}-internal-lambda-sg"
-  description = "${var.env}-internal-lambda-sg"
+  name        = "${var.env}-internal-public-lambda-sg"
+  description = "${var.env}-internal-public-lambda-sg"
   vpc_id      = aws_vpc.main.id
-
-  ingress {
-    description     = "HTTPS"
-    from_port       = 443
-    to_port         = 443
-    protocol        = "tcp"
-    security_groups = ["${aws_security_group.vpc_endpoint_of_interface_lambda_sg.id}"]
-  }
 
   egress {
     description = ""
@@ -345,33 +390,52 @@ resource "aws_security_group" "vpc_endpoint_cloudwatch_logs_sg" {
   }
 }
 
-resource "aws_vpc_endpoint" "from_api_gateway_to_lambda" {
-  vpc_id            = aws_vpc.main.id
-  service_name      = "com.amazonaws.${var.region}.lambda"
-  vpc_endpoint_type = "Interface"
-  subnet_ids        = [aws_subnet.lambda_private_a.id]
-  # subnet_ids          = [aws_subnet.lambda_private_a.id, aws_subnet.lambda_private_c.id]
-  security_group_ids  = [aws_security_group.vpc_endpoint_of_interface_lambda_sg.id]
-  private_dns_enabled = true
-  tags = {
-    Name = "${var.env}-endpoint-lambda"
-  }
-}
+#=======privateサブネットにLambdaを設定する際に必要なVPC Endpoint=========
+# resource "aws_vpc_endpoint" "from_api_gateway_to_lambda" {
+#   vpc_id            = aws_vpc.main.id
+#   service_name      = "com.amazonaws.${var.region}.lambda"
+#   vpc_endpoint_type = "Interface"
+#   subnet_ids        = [aws_subnet.lambda_private_a.id]
+#   # subnet_ids          = [aws_subnet.lambda_private_a.id, aws_subnet.lambda_private_c.id]
+#   security_group_ids  = [aws_security_group.vpc_endpoint_of_interface_lambda_sg.id]
+#   private_dns_enabled = true
+#   tags = {
+#     Name = "${var.env}-endpoint-lambda"
+#   }
+# }
+#=======privateサブネットにLambdaを設定する際に必要なVPC Endpoint=========
+
+# resource "aws_vpc_endpoint" "from_lambda_to_dynamodb" {
+#   vpc_id            = aws_vpc.main.id
+#   service_name      = "com.amazonaws.${var.region}.dynamodb"
+#   vpc_endpoint_type = "Gateway"
+#   route_table_ids   = [aws_route_table.private_a.id]
+#   # route_table_ids   = [aws_route_table.private_a.id, aws_route_table.private_c.id]
+
+#   tags = {
+#     Name = "${var.env}-endpoint-dynamodb"
+#   }
+# }
 
 resource "aws_vpc_endpoint" "from_lambda_to_dynamodb" {
   vpc_id            = aws_vpc.main.id
   service_name      = "com.amazonaws.${var.region}.dynamodb"
   vpc_endpoint_type = "Gateway"
-  route_table_ids   = [aws_route_table.private_a.id]
-  # route_table_ids   = [aws_route_table.private_a.id, aws_route_table.private_c.id]
+  route_table_ids   = [aws_route_table.public_a.id]
+  # route_table_ids   = [aws_route_table.public_a.id, aws_route_table.public_c.id]
 
   tags = {
     Name = "${var.env}-endpoint-dynamodb"
   }
 }
 
+# resource "aws_vpc_endpoint_route_table_association" "from_lambda_a_to_dynamodb" {
+#   route_table_id  = aws_route_table.private_a.id
+#   vpc_endpoint_id = aws_vpc_endpoint.from_lambda_to_dynamodb.id
+# }
+
 resource "aws_vpc_endpoint_route_table_association" "from_lambda_a_to_dynamodb" {
-  route_table_id  = aws_route_table.private_a.id
+  route_table_id  = aws_route_table.public_a.id
   vpc_endpoint_id = aws_vpc_endpoint.from_lambda_to_dynamodb.id
 }
 
@@ -380,6 +444,10 @@ resource "aws_vpc_endpoint_route_table_association" "from_lambda_a_to_dynamodb" 
 #   vpc_endpoint_id = aws_vpc_endpoint.from_lambda_to_dynamodb.id
 # }
 
+# resource "aws_vpc_endpoint_route_table_association" "from_lambda_c_to_dynamodb" {
+#   route_table_id  = aws_route_table.public_c.id
+#   vpc_endpoint_id = aws_vpc_endpoint.from_lambda_to_dynamodb.id
+# }
 
 ### ECRのVPC Endpoint
 resource "aws_vpc_endpoint" "ecr_dkr" {

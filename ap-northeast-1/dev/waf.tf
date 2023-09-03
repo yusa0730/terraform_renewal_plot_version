@@ -272,7 +272,7 @@ resource "aws_wafv2_web_acl" "apigateway" {
   }
 }
 
-resource "aws_wafv2_web_acl_association" "apigateway" {
-  resource_arn = "arn:aws:apigateway:${var.region}::/restapis/${aws_api_gateway_stage.main.rest_api_id}/stages/${aws_api_gateway_stage.main.stage_name}"
-  web_acl_arn  = aws_wafv2_web_acl.apigateway.arn
-}
+# resource "aws_wafv2_web_acl_association" "apigateway" {
+#   resource_arn = "arn:aws:apigateway:${var.region}::/restapis/${aws_api_gateway_stage.main.rest_api_id}/stages/${aws_api_gateway_stage.main.stage_name}"
+#   web_acl_arn  = aws_wafv2_web_acl.apigateway.arn
+# }

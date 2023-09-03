@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_kms_key" "backup_vault" {
   customer_master_key_spec = "SYMMETRIC_DEFAULT"
   description              = "Default key that protects my Backup data when no other key is defined"

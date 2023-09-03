@@ -19,7 +19,7 @@ variable "region" {
 variable "rest_api_name" {
   description = "aws_api_gateway_rest_apiのnameの値"
   type        = string
-  default     = "test_api"
+  default     = "test-rest-api"
 }
 
 variable "rest_api_description" {
@@ -49,5 +49,11 @@ variable "lambda_function_name" {
 variable "cognito_user_pool_name" {
   description = "cognitoのuser_pool用のname値"
   type        = string
-  default     = "user_pool_of_tcdx"
+  default     = "user_pool_of_test"
+}
+
+variable "lambda_count" {
+  description = "aws_lambda_functionの作成する個数"
+  type        = number
+  default     = 3
 }
