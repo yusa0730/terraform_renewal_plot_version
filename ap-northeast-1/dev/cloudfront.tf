@@ -1,3 +1,7 @@
+resource "aws_cloudfront_origin_access_identity" "oai" {
+  comment = "OAI for static site"
+}
+
 resource "aws_cloudfront_distribution" "main" {
   aliases             = []
   comment             = "dev環境用のcloudfront"
@@ -10,8 +14,31 @@ resource "aws_cloudfront_distribution" "main" {
   tags_all            = {}
   wait_for_deployment = true
   web_acl_id          = aws_wafv2_web_acl.cloudfront.arn
+  default_root_object = "index.html"
 
   default_cache_behavior {
+    target_origin_id       = aws_s3_bucket.static_file.bucket_domain_name
+    viewer_protocol_policy = "redirect-to-https"
+
+    allowed_methods = [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+    ]
+    cached_methods = [
+      "GET",
+      "HEAD",
+    ]
+
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+
+  ordered_cache_behavior {
     allowed_methods = [
       "DELETE",
       "GET",
@@ -30,6 +57,7 @@ resource "aws_cloudfront_distribution" "main" {
     max_ttl                = 0
     min_ttl                = 0
     smooth_streaming       = false
+    path_pattern           = "/api*"
     target_origin_id       = "${aws_api_gateway_rest_api.main.id}.execute-api.${var.region}.amazonaws.com"
     trusted_key_groups     = []
     trusted_signers        = []
@@ -61,9 +89,20 @@ resource "aws_cloudfront_distribution" "main" {
   origin {
     connection_attempts = 3
     connection_timeout  = 10
+    domain_name         = aws_s3_bucket.static_file.bucket_domain_name
+    origin_id           = aws_s3_bucket.static_file.bucket_domain_name
+
+    s3_origin_config {
+      origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
+    }
+  }
+
+  origin {
+    connection_attempts = 3
+    connection_timeout  = 10
     domain_name         = "${aws_api_gateway_rest_api.main.id}.execute-api.${var.region}.amazonaws.com"
     origin_id           = "${aws_api_gateway_rest_api.main.id}.execute-api.${var.region}.amazonaws.com"
-    origin_path         = "/${aws_api_gateway_stage.main.stage_name}"
+    # origin_path         = "/${aws_api_gateway_stage.main.stage_name}"
 
     custom_origin_config {
       http_port                = 80
@@ -102,6 +141,10 @@ resource "aws_cloudfront_distribution" "main" {
     aws_s3_bucket_public_access_block.cloudfront_access_block,
     aws_s3_bucket_acl.cloudfront_acl,
     aws_s3_bucket_ownership_controls.main,
+    aws_s3_bucket.static_file,
+    aws_s3_bucket_public_access_block.static_file_access_block,
+    # aws_s3_bucket_acl.static_file_acl,
+    aws_s3_bucket_ownership_controls.static_file,
     aws_wafv2_web_acl.cloudfront
   ]
 }
