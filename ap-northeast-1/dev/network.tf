@@ -109,6 +109,26 @@ resource "aws_subnet" "aws_batch_private_a" {
 #   }
 # }
 
+resource "aws_subnet" "elastic_private_a" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.2.30.0/24"
+  availability_zone = "${var.region}a"
+
+  tags = {
+    Name = "${var.env}-elastic-private-a-sbn"
+  }
+}
+
+resource "aws_subnet" "elastic_private_c" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.2.31.0/24"
+  availability_zone = "${var.region}c"
+
+  tags = {
+    Name = "${var.env}-elastic-private-c-sbn"
+  }
+}
+
 
 # Internet Gateway
 resource "aws_internet_gateway" "main" {
@@ -253,6 +273,16 @@ resource "aws_route_table_association" "aws_batch_private_a" {
 #   route_table_id = aws_route_table.private_c.id
 # }
 
+resource "aws_route_table_association" "elastic_private_a" {
+  subnet_id      = aws_subnet.elastic_private_a.id
+  route_table_id = aws_route_table.private_a.id
+}
+
+# resource "aws_route_table_association" "elastic_private_c" {
+#   subnet_id      = aws_subnet.elastic_private_c.id
+#   route_table_id = aws_route_table.private_c.id
+# }
+
 # security_group
 #=======privateサブネットにLambdaを設定する際に必要なSecurity Group=========
 # resource "aws_security_group" "vpc_endpoint_of_interface_lambda_sg" {
@@ -387,6 +417,20 @@ resource "aws_security_group" "vpc_endpoint_cloudwatch_logs_sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "elasticache_sg" {
+  name        = "${var.env}-elasticache-sg"
+  description = "${var.env}-elasticache-sg"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description     = "from public lambda"
+    from_port       = 6379
+    to_port         = 6379
+    protocol        = "tcp"
+    security_groups = ["${aws_security_group.from_api_gateway_to_lambda_sg.id}"]
   }
 }
 
