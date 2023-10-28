@@ -1,11 +1,9 @@
 resource "aws_wafv2_web_acl" "cloudfront" {
   provider = aws.virginia
 
-  description   = "${var.env}-waf-acl-of-cloudfront"
-  name          = "${var.env}-waf-acl-of-cloudfront"
+  description   = "${var.project_name}-${var.env}-waf-acl-of-cloudfront"
+  name          = "${var.project_name}-${var.env}-waf-acl-of-cloudfront"
   scope         = "CLOUDFRONT"
-  tags          = {}
-  tags_all      = {}
   token_domains = []
 
   default_action {
@@ -134,14 +132,18 @@ resource "aws_wafv2_web_acl" "cloudfront" {
     metric_name                = "${var.env}-waf-acl-of-cloudfront"
     sampled_requests_enabled   = true
   }
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-waf-acl-of-cloudfront"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }
 
 resource "aws_wafv2_web_acl" "apigateway" {
-  description   = "${var.env}-waf-acl-of-apigateway"
-  name          = "${var.env}-waf-acl-of-apigateway"
+  description   = "${var.project_name}-${var.env}-waf-acl-of-apigateway"
+  name          = "${var.project_name}-${var.env}-waf-acl-of-apigateway"
   scope         = "REGIONAL"
-  tags          = {}
-  tags_all      = {}
   token_domains = []
 
   default_action {
@@ -269,6 +271,12 @@ resource "aws_wafv2_web_acl" "apigateway" {
     cloudwatch_metrics_enabled = true
     metric_name                = "${var.env}-waf-acl-of-apigateway"
     sampled_requests_enabled   = true
+  }
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-waf-acl-of-apigateway"
+    Env       = var.env
+    ManagedBy = "Terraform"
   }
 }
 
