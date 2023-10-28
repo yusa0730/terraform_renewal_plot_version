@@ -17,6 +17,12 @@
 #       aws_subnet.lambda_private_a.id
 #     ]
 #   }
+
+#   tags = {
+#     Name      = "${var.project_name}-${var.env}-lambda-function"
+#     Env       = var.env
+#     ManagedBy = "Terraform"
+#   }
 # }
 
 resource "aws_api_gateway_rest_api" "main" {
@@ -26,13 +32,17 @@ resource "aws_api_gateway_rest_api" "main" {
   disable_execute_api_endpoint = false
   name                         = "${var.project_name}-${var.env}-rest-api"
   put_rest_api_mode            = "overwrite"
-  tags                         = {}
-  tags_all                     = {}
 
   endpoint_configuration {
     types = [
       "REGIONAL",
     ]
+  }
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-rest-api"
+    Env       = var.env
+    ManagedBy = "Terraform"
   }
 }
 
@@ -87,8 +97,12 @@ module "outside_lambda_and_api" {
 #   deployment_id         = aws_api_gateway_deployment.main.id
 #   rest_api_id           = aws_api_gateway_rest_api.main.id
 #   stage_name            = var.env
-#   tags                  = {}
-#   tags_all              = {}
 #   variables             = {}
 #   xray_tracing_enabled  = false
+
+#   tags = {
+#     Name      = "${var.project_name}-${var.env}-stage"
+#     Env       = var.env
+#     ManagedBy = "Terraform"
+#   }
 # }

@@ -1,6 +1,6 @@
 ## Lambda
 resource "aws_iam_role" "lambda_role" {
-  name = "${var.env}-lambda-role"
+  name = "${var.project_name}-${var.env}-lambda-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -14,6 +14,12 @@ resource "aws_iam_role" "lambda_role" {
       },
     ]
   })
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-lambda-role"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_role_policy_attach" {
@@ -55,14 +61,14 @@ data "aws_iam_policy_document" "lambda_role_policy" {
 }
 
 resource "aws_iam_role_policy" "lambda_role_policy" {
-  name   = "${var.env}-lambda-role-policy"
+  name   = "${var.project_name}-${var.env}-lambda-role-policy"
   role   = aws_iam_role.lambda_role.id
   policy = data.aws_iam_policy_document.lambda_role_policy.json
 }
 
 ## AWS Backup
 resource "aws_iam_role" "aws_backup_role" {
-  name = "AWSBackupDefaultServiceRole"
+  name = "${var.project_name}-${var.env}-aws-backup-default-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -76,6 +82,12 @@ resource "aws_iam_role" "aws_backup_role" {
       },
     ],
   })
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-aws-backup-default-role"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }
 
 data "aws_iam_policy" "aws_backup_service_role_policy_for_backup" {
@@ -98,7 +110,7 @@ resource "aws_iam_role_policy_attachment" "aws_restore" {
 
 ## AWS Batch
 resource "aws_iam_role" "batch_service_role" {
-  name = "${var.env}-batch-service-role"
+  name = "${var.project_name}-${var.env}-batch-service-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -111,6 +123,12 @@ resource "aws_iam_role" "batch_service_role" {
       }
     ]
   })
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-batch-service-role"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }
 
 data "aws_iam_policy" "aws_batch" {
@@ -123,7 +141,7 @@ resource "aws_iam_role_policy_attachment" "aws_batch" {
 }
 
 resource "aws_iam_role" "batch_task_execution_role" {
-  name = "${var.env}-batch-task-execution-role"
+  name = "${var.project_name}-${var.env}-batch-task-execution-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -136,6 +154,12 @@ resource "aws_iam_role" "batch_task_execution_role" {
       }
     ]
   })
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-batch-task-execution-role"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }
 
 data "aws_iam_policy" "batch_task_execution" {
@@ -148,7 +172,7 @@ resource "aws_iam_role_policy_attachment" "batch_task_execution" {
 }
 
 resource "aws_iam_role" "push_notification_batch_job_role" {
-  name = "${var.env}-push-notification-batch-job-role"
+  name = "${var.project_name}-${var.env}-push-notification-batch-job-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -161,6 +185,12 @@ resource "aws_iam_role" "push_notification_batch_job_role" {
       }
     ]
   })
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-push-notification-batch-job-role"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }
 
 resource "aws_iam_role_policy" "push_notification_batch_job" {
@@ -234,7 +264,7 @@ data "aws_iam_policy_document" "push_notification_batch_job_custom" {
 
 ## public用AWS BatchのIAM
 resource "aws_iam_role" "public_batch_job_role" {
-  name = "${var.env}-public-batch-job-role"
+  name = "${var.project_name}-${var.env}-public-batch-job-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -247,10 +277,16 @@ resource "aws_iam_role" "public_batch_job_role" {
       }
     ]
   })
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-public-batch-job-role"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }
 
 resource "aws_iam_role_policy" "public_batch_job" {
-  name   = "${var.env}-public-batch-job-policy"
+  name   = "${var.project_name}-${var.env}-public-batch-job-policy"
   role   = aws_iam_role.public_batch_job_role.id
   policy = data.aws_iam_policy_document.public_batch_job_custom.json
 }
@@ -305,7 +341,7 @@ data "aws_iam_policy_document" "public_batch_job_custom" {
 
 # IAM Role that EventBridge assumes
 resource "aws_iam_role" "event_role" {
-  name = "${var.env}-event-bridge-batch-execution-role"
+  name = "${var.project_name}-${var.env}-event-bridge-batch-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -319,6 +355,12 @@ resource "aws_iam_role" "event_role" {
       }
     ]
   })
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-event-bridge-batch-execution-role"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }
 
 # Add the permissions necessary for the EventBridge role
@@ -328,7 +370,7 @@ resource "aws_iam_role_policy_attachment" "event_role_permissions" {
 }
 
 resource "aws_iam_policy" "event_policy" {
-  name        = "event-bridge-batch-policy"
+  name        = "${var.project_name}-${var.env}-event-bridge-batch-policy"
   description = "Policy to allow EventBridge to start AWS Batch Jobs"
 
   policy = jsonencode({
@@ -343,4 +385,10 @@ resource "aws_iam_policy" "event_policy" {
       }
     ]
   })
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-event-bridge-batch-policy"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }

@@ -1,10 +1,16 @@
 resource "aws_dynamodb_table" "main" {
-  name         = "${var.env}-example-table"
+  name         = "${var.project_name}-${var.env}-dynamodb-table"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "id"
   attribute {
     name = "id"
     type = "S"
+  }
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-dynamodb-table"
+    Env       = var.env
+    ManagedBy = "Terraform"
   }
 }
 

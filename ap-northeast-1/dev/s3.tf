@@ -5,8 +5,6 @@ resource "aws_s3_bucket" "cloudfront_logs" {
   bucket              = "${var.project_name}-${var.env}-cloudfront-logs-bucket"
   object_lock_enabled = false
   request_payer       = "BucketOwner"
-  tags                = {}
-  tags_all            = {}
 
   server_side_encryption_configuration {
     rule {
@@ -21,6 +19,12 @@ resource "aws_s3_bucket" "cloudfront_logs" {
   versioning {
     enabled    = false
     mfa_delete = false
+  }
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-cloudfront-logs-bucket"
+    Env       = var.env
+    ManagedBy = "Terraform"
   }
 }
 
@@ -87,8 +91,6 @@ resource "aws_s3_bucket" "static_file" {
   bucket              = "${var.project_name}-${var.env}-static-file-bucket"
   object_lock_enabled = false
   request_payer       = "BucketOwner"
-  tags                = {}
-  tags_all            = {}
 
   website {
     index_document = "index.html"
@@ -108,6 +110,12 @@ resource "aws_s3_bucket" "static_file" {
   versioning {
     enabled    = false
     mfa_delete = false
+  }
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-static-file-bucket"
+    Env       = var.env
+    ManagedBy = "Terraform"
   }
 }
 
