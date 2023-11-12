@@ -12,6 +12,11 @@ resource "aws_rds_cluster" "aurora_cluster" {
   ]
   db_subnet_group_name = aws_db_subnet_group.aurora_subnet_group.name
 
+  serverlessv2_scaling_configuration {
+    min_capacity = 0.5
+    max_capacity = 1
+  }
+
   tags = {
     Name      = "${var.project_name}-${var.env}-aurora-cluster",
     Env       = var.env,
@@ -22,7 +27,7 @@ resource "aws_rds_cluster" "aurora_cluster" {
 resource "aws_rds_cluster_instance" "aurora_cluster_instance" {
   identifier         = "${var.project_name}-${var.env}-aurora-cluster-instance"
   cluster_identifier = aws_rds_cluster.aurora_cluster.cluster_identifier
-  instance_class     = "db.r5.large"
+  instance_class     = "db.serverless"
   engine             = "aurora-mysql"
 
   tags = {
