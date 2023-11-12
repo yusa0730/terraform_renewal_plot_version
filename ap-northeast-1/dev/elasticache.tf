@@ -33,25 +33,39 @@ resource "aws_elasticache_replication_group" "main" {
   }
 
   tags = {
-    "Name" = "${var.project_name}-${var.env}-elasticache_replication_group"
+    Name      = "${var.project_name}-${var.env}-elasticache-replication-group"
+    Env       = var.env
+    ManagedBy = "Terraform"
   }
 }
 
 resource "aws_elasticache_subnet_group" "main" {
-  name        = "${var.env}-elasticache-subnet-group"
+  name        = "${var.project_name}-${var.env}-elasticache-subnet-group"
   description = "ElastiCache subnet group for single AZ"
 
   subnet_ids = [
     aws_subnet.elastic_private_a.id
   ]
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-elasticache-subnet-group"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }
 
 resource "aws_elasticache_parameter_group" "main" {
-  name   = "${var.env}-elasticache-parameter-group"
+  name   = "${var.project_name}-${var.env}-elasticache-parameter-group"
   family = "redis7"
 
   parameter {
     name  = "cluster-enabled"
     value = "no"
+  }
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-elasticache-parameter-group"
+    Env       = var.env
+    ManagedBy = "Terraform"
   }
 }

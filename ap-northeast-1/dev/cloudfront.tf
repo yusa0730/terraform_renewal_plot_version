@@ -4,14 +4,12 @@ resource "aws_cloudfront_origin_access_identity" "oai" {
 
 resource "aws_cloudfront_distribution" "main" {
   aliases             = []
-  comment             = "dev環境用のcloudfront"
+  comment             = "${var.env}環境用のcloudfront"
   enabled             = true
   http_version        = "http2"
   is_ipv6_enabled     = true
   price_class         = "PriceClass_200"
   retain_on_delete    = false
-  tags                = {}
-  tags_all            = {}
   wait_for_deployment = true
   web_acl_id          = aws_wafv2_web_acl.cloudfront.arn
   default_root_object = "index.html"
@@ -147,4 +145,10 @@ resource "aws_cloudfront_distribution" "main" {
     aws_s3_bucket_ownership_controls.static_file,
     aws_wafv2_web_acl.cloudfront
   ]
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-cloudfront-distribution"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }

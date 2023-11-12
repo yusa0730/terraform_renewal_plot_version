@@ -1,16 +1,28 @@
 # # EventBridge Event Rule
 # resource "aws_cloudwatch_event_rule" "every_first_saturday" {
-#   name        = "every-first-saturday"
+#   name        = "${var.project_name}-${var.env}-every-first-saturday"
 #   description = "Fires every first Saturday of the month at 12:30"
 
 #   schedule_expression = "cron(30 12 ? * 6#1 *)"
+
+#   tags = {
+#     Name      = "${var.project_name}-${var.env}-event-rule-every-first-saturday"
+#     Env       = var.env
+#     ManagedBy = "Terraform"
+#   }
 # }
 
 # resource "aws_cloudwatch_event_rule" "every_third_saturday" {
-#   name        = "every-third-saturday"
+#   name        = "${var.project_name}-${var.env}-every-third-saturday"
 #   description = "Fires every third Saturday of the month at 12:30"
 
 #   schedule_expression = "cron(30 12 ? * 6#3 *)"
+
+#   tags = {
+#     Name      = "${var.project_name}-${var.env}-event-rule-every-third-saturday"
+#     Env       = var.env
+#     ManagedBy = "Terraform"
+#   }
 # }
 
 
@@ -22,7 +34,7 @@
 #   role_arn = aws_iam_role.event_role.arn # A role that EventBridge can assume to launch the Batch Job
 
 #   batch_target {
-#     job_name       = "first-saturday-push-notification-job"
+#     job_name       = "${var.project_name}-${var.env}-first-saturday-push-notification-job"
 #     job_definition = aws_batch_job_definition.push_notification_batch_job_def.name
 #   }
 # }
@@ -35,7 +47,7 @@
 #   role_arn = aws_iam_role.event_role.arn # A role that EventBridge can assume to launch the Batch Job
 
 #   batch_target {
-#     job_name       = "third-saturday-push-notification-job"
+#     job_name       = "${var.project_name}-${var.env}-third-saturday-push-notification-job"
 #     job_definition = aws_batch_job_definition.push_notification_batch_job_def.name
 #   }
 # }
@@ -48,7 +60,7 @@
 # #   role_arn = aws_iam_role.event_role.arn # A role that EventBridge can assume to launch the Batch Job
 
 # #   batch_target {
-# #     job_name       = "first-saturday-public-batch-job"
+# #     job_name       = "${var.project_name}-${var.env}-first-saturday-public-batch-job"
 # #     job_definition = aws_batch_job_definition.public_batch_job_def.name
 # #   }
 # # }
@@ -61,7 +73,7 @@
 # #   role_arn = aws_iam_role.event_role.arn # A role that EventBridge can assume to launch the Batch Job
 
 # #   batch_target {
-# #     job_name       = "third-saturday-public-batch-job"
+# #     job_name       = "${var.project_name}-${var.env}-third-saturday-public-batch-job"
 # #     job_definition = aws_batch_job_definition.public_batch_job_def.name
 # #   }
 # # }

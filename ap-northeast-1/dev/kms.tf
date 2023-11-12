@@ -48,8 +48,12 @@ resource "aws_kms_key" "backup_vault" {
       Version = "2012-10-17"
     }
   )
-  tags     = {}
-  tags_all = {}
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-backup-vault"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }
 
 resource "aws_kms_key" "destination_backup_vault" {
@@ -101,6 +105,10 @@ resource "aws_kms_key" "destination_backup_vault" {
       Version = "2012-10-17"
     }
   )
-  tags     = {}
-  tags_all = {}
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-destination-backup-vault"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }

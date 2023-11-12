@@ -8,6 +8,12 @@ resource "aws_lambda_function" "main" {
   image_uri     = var.image_url
 
   package_type = "Image"
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-api${count.index + 201}"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }
 
 resource "aws_api_gateway_resource" "main" {

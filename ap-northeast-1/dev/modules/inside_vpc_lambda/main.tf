@@ -24,6 +24,12 @@ resource "aws_lambda_function" "main" {
   depends_on = [
     var.iam_role_arn
   ]
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-api${count.index + 101}"
+    Env       = var.env
+    ManagedBy = "Terraform"
+  }
 }
 
 resource "aws_api_gateway_resource" "main" {
