@@ -143,14 +143,26 @@ resource "aws_subnet" "elastic_private_a" {
   }
 }
 
-resource "aws_subnet" "elastic_private_c" {
+resource "aws_subnet" "aurora_private_a" {
   vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.2.31.0/24"
+  cidr_block        = "10.2.40.0/24"
+  availability_zone = "${var.region}a"
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-aurora-private-a-sbn",
+    Env       = var.env,
+    ManagedBy = "Terraform"
+  }
+}
+
+resource "aws_subnet" "aurora_private_c" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.2.41.0/24"
   availability_zone = "${var.region}c"
 
   tags = {
-    Name      = "${var.project_name}-${var.env}-elastic-private-c-sbn"
-    Env       = var.env
+    Name      = "${var.project_name}-${var.env}-aurora-private-c-sbn",
+    Env       = var.env,
     ManagedBy = "Terraform"
   }
 }
@@ -329,6 +341,16 @@ resource "aws_route_table_association" "elastic_private_a" {
 
 # resource "aws_route_table_association" "elastic_private_c" {
 #   subnet_id      = aws_subnet.elastic_private_c.id
+#   route_table_id = aws_route_table.private_c.id
+# }
+
+resource "aws_route_table_association" "aurora_private_a" {
+  subnet_id      = aws_subnet.aurora_private_a.id
+  route_table_id = aws_route_table.private_a.id
+}
+
+# resource "aws_route_table_association" "aurora_private_c" {
+#   subnet_id      = aws_subnet.aurora_private_c.id
 #   route_table_id = aws_route_table.private_c.id
 # }
 
@@ -527,6 +549,37 @@ resource "aws_security_group" "elasticache_sg" {
   tags = {
     Name      = "${var.project_name}-${var.env}-elasticache-sg"
     Env       = var.env
+    ManagedBy = "Terraform"
+  }
+}
+
+resource "aws_security_group" "aurora_sg" {
+  name        = "${var.project_name}-${var.env}-aurora-sg"
+  description = "${var.project_name}-${var.env}-aurora-sg"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "Allow inbound traffic from App Runner"
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    security_groups = [
+      aws_security_group.from_api_gateway_to_lambda_sg.id,
+      aws_security_group.public_aws_batch_sg.id
+    ]
+  }
+
+  egress {
+    description = ""
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name      = "${var.project_name}-${var.env}-aurora-sg",
+    Env       = var.env,
     ManagedBy = "Terraform"
   }
 }
