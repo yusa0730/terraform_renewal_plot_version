@@ -477,11 +477,20 @@ resource "aws_security_group" "vpc_endpoint_ecr_sg" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description     = "from AWS Batch"
-    from_port       = 0
-    to_port         = 0
-    protocol        = "-1"
+    description     = "from push notification AWS Batch"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
     security_groups = ["${aws_security_group.push_notification_aws_batch_sg.id}"]
+  }
+
+  // 本番環境ではメンテナンス用EC2のSGもingressに設定する必要あり
+  ingress {
+    description     = "from public AWS Batch"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = ["${aws_security_group.public_aws_batch_sg.id}"]
   }
 
   egress {
